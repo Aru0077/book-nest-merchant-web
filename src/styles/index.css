@@ -1,5 +1,5 @@
 /**
- * 全局样式入口文件
+ * 全局样式入口文件 - 精简版本
  */
 
 /* 导入基础样式 */
@@ -9,111 +9,27 @@
 /* ============ 全局基础样式 ============ */
 html {
   font-size: 16px;
-  scroll-behavior: smooth;
 }
 
 body {
-  font-family: var(--font-family-primary);
+  font-family: var(--font-family);
   font-size: var(--font-size-md);
-  line-height: var(--line-height-normal);
-  color: var(--text-color-primary);
-  background-color: var(--bg-color-primary);
+  line-height: 1.5;
+  color: var(--color-gray-dark);
+  background-color: var(--color-white);
 }
 
-/* ============ 工具类样式 ============ */
-.container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--spacing-md);
-}
-
-.flex {
-  display: flex;
-}
-
-.flex-col {
-  flex-direction: column;
-}
-
-.items-center {
-  align-items: center;
-}
-
-.justify-center {
-  justify-content: center;
-}
-
-.justify-between {
-  justify-content: space-between;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-left {
-  text-align: left;
-}
-
-.text-right {
-  text-align: right;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* ============ 响应式工具类 ============ */
-@media (max-width: 767px) {
-  .hidden-mobile {
-    display: none !important;
-  }
-}
-
-@media (min-width: 768px) {
-  .hidden-desktop {
-    display: none !important;
-  }
-}
-
-/* ============ 动画类 ============ */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity var(--transition-duration-normal) var(--transition-timing-ease);
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-/* ============ 通用组件样式 ============ */
+/* ============ 基础按钮样式 ============ */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
-  border: 1px solid transparent;
-  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
   cursor: pointer;
-  transition: all var(--transition-duration-fast) var(--transition-timing-ease);
-  user-select: none;
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  transition: var(--transition);
 }
 
 .btn-primary {
@@ -122,55 +38,21 @@ body {
   border-color: var(--color-primary);
 }
 
-.btn-primary:hover:not(:disabled) {
-  background-color: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
+.btn-primary:hover {
+  opacity: 0.9;
 }
 
-.btn-secondary {
-  background-color: transparent;
-  color: var(--color-secondary);
-  border-color: var(--color-secondary);
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background-color: var(--color-secondary);
-  color: var(--color-white);
-}
-
+/* ============ 基础表单样式 ============ */
 .input {
   width: 100%;
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: var(--font-size-md);
-  border: 1px solid var(--border-color-medium);
-  border-radius: var(--border-radius-md);
-  transition: border-color var(--transition-duration-fast) var(--transition-timing-ease);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  transition: var(--transition);
 }
 
 .input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
-
-.input.error {
-  border-color: var(--color-error);
-}
-
-.form-group {
-  margin-bottom: var(--spacing-md);
-}
-
-.form-label {
-  display: block;
-  margin-bottom: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-color-primary);
-}
-
-.form-error {
-  margin-top: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  color: var(--color-error);
 }
