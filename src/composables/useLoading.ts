@@ -18,19 +18,19 @@ export interface UseLoadingReturn {
  */
 export function useLoading(initialState = false): UseLoadingReturn {
   const isLoading = ref(initialState)
-  
+
   const setLoading = (loading: boolean) => {
     isLoading.value = loading
   }
-  
+
   const startLoading = () => {
     isLoading.value = true
   }
-  
+
   const stopLoading = () => {
     isLoading.value = false
   }
-  
+
   const withLoading = async <T>(promise: Promise<T>): Promise<T> => {
     startLoading()
     try {
@@ -40,7 +40,7 @@ export function useLoading(initialState = false): UseLoadingReturn {
       stopLoading()
     }
   }
-  
+
   return {
     isLoading: readonly(isLoading),
     setLoading,

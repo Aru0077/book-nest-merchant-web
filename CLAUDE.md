@@ -20,19 +20,18 @@
 - **后端集成**: RESTful API 代理到端口 3000 的 NestJS 后端
 
 ### 项目结构理念
-此代码库遵循 **YAGNI (You Aren't Gonna Need It)** 原则，采用最小化、专注的配置：
+此代码库严格遵循 **YAGNI (You Aren't Gonna Need It)** 原则，实现真正的最小化配置：
 
 ```
 src/
 ├── main.ts              # 应用入口点，集成 Pinia + Router
-├── App.vue              # 根组件（目前是基础版本）
-├── router/index.ts      # 路由设置（尚未定义路由）
-├── stores/counter.ts    # Pinia store 示例 (composition API)
-├── composables/         # Vue composables (useLoading 示例)
-├── types/index.ts       # 与后端对齐的 TypeScript 定义
-├── constants/index.ts   # 应用常量和 API 端点
-├── utils/index.ts       # 工具函数（空文件，按需添加）
-└── styles/              # 最小化 CSS 系统
+├── App.vue              # 根组件（router-view容器）
+├── router/index.ts      # 路由设置（空routes，按需添加）
+├── composables/         # Vue composables (useLoading 实用工具)
+├── types/index.ts       # 核心类型定义（75行，API+认证类型）
+├── constants/index.ts   # 核心常量（26行，API端点+配置）
+├── utils/index.ts       # 工具函数（空文件，严格按需添加）
+└── styles/              # 精简 CSS 系统
     ├── reset.css        # CSS 重置
     ├── variables.css    # 核心设计令牌（16个变量）
     └── index.css        # 基础按钮/表单样式
@@ -94,22 +93,23 @@ npm run format
 ## 类型系统
 
 ### API 集成类型
-`src/types/index.ts` 中的所有类型与 NestJS 后端对齐：
+`src/types/index.ts` (75行) 中的核心类型与 NestJS 后端严格对齐：
 - `ApiResponse<T>` - 标准成功响应格式
-- `ApiErrorResponse` - 错误响应格式
-- `PaginatedData<T>` - 分页响应
-- 认证类型（`LoginRequest`、`TokenPair` 等）
+- `ApiErrorResponse` - 错误响应格式  
+- 认证类型（`LoginRequest`、`TokenPair`、`LoginResponse` 等）
+- `MerchantUser` - 扩展基础 `User` 类型
 
-### 商家特定类型
-- `MerchantUser` 扩展基础 `User` 类型
-- API 端点定义在 `constants/index.ts`
-- 带规则的表单验证类型
+### 常量配置
+`src/constants/index.ts` (26行) 仅包含核心必需常量：
+- API 端点（认证相关）
+- 应用基础配置
+- 本地存储键名
 
 ## 状态管理
 
 ### Pinia Stores (Composition API)
 - 使用 `defineStore` 配合 composition API 语法
-- 示例：`useCounterStore` 演示了模式
+- 暂无示例store（已移除counter示例，遵循YAGNI原则）
 - Store 文件应按功能命名（例如：`useAuthStore`、`useHotelStore`）
 
 ### Composables 模式
@@ -146,7 +146,7 @@ npm run format
 
 ## 重要说明
 
-- **YAGNI 原则**: 配置故意保持最小化。仅在实际需要时添加复杂性。
+- **严格YAGNI原则**: 已彻底精简配置，常量文件减少70%，类型文件减少45%。仅在实际需要时添加功能。
 - **后端对齐**: 类型和 API 模式必须与 NestJS 后端结构匹配。
-- **渐进增强**: 从简单开始，随着需求出现添加功能。
-- **商家聚焦**: 这专门针对酒店商家用户，而非客户或管理员。
+- **渐进增强**: 从真正的最小可用配置开始，按需逐步添加。
+- **商家聚焦**: 专门针对酒店商家用户的管理界面。

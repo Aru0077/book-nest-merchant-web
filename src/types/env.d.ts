@@ -9,6 +9,6 @@ interface ImportMetaEnv {
   // 添加更多环境变量类型...
 }
 
-interface ImportMeta {
+interface ImportMeta { // eslint-disable-line @typescript-eslint/no-unused-vars
   readonly env: ImportMetaEnv
 }
