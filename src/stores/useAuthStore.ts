@@ -29,26 +29,58 @@ export const useAuthStore = defineStore('auth', () => {
   // Actions
 
   /**
+   * 通用错误处理函数
+   */
+  const handleAuthError = (err: any, defaultMessage: string): void => {
+    const errorMessage = err.message || defaultMessage
+    error.value = errorMessage
+    isLoading.value = false
+    throw new Error(errorMessage)
+  }
+
+  /**
+   * 安全获取localStorage数据
+   */
+  const safeGetStorage = (key: string): string | null => {
+    try {
+      return localStorage.getItem(key)
+    } catch {
+      return null
+    }
+  }
+
+  /**
+   * 安全解析JSON
+   */
+  const safeJsonParse = <T>(data: string): T | null => {
+    try {
+      return JSON.parse(data) as T
+    } catch {
+      return null
+    }
+  }
+
+  /**
    * 初始化认证状态 - 从localStorage恢复
    */
   const initAuth = (): void => {
-    try {
-      const storedUser = localStorage.getItem(STORAGE_KEYS.USER_INFO)
-      const storedAccessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
-      const storedRefreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)
+    const storedUser = safeGetStorage(STORAGE_KEYS.USER_INFO)
+    const storedAccessToken = safeGetStorage(STORAGE_KEYS.ACCESS_TOKEN)
+    const storedRefreshToken = safeGetStorage(STORAGE_KEYS.REFRESH_TOKEN)
 
-      if (storedUser && storedAccessToken && storedRefreshToken) {
-        user.value = JSON.parse(storedUser)
+    if (storedUser && storedAccessToken && storedRefreshToken) {
+      const userData = safeJsonParse<MerchantUser>(storedUser)
+      if (userData) {
+        user.value = userData
         tokens.value = {
           accessToken: storedAccessToken,
           refreshToken: storedRefreshToken,
-          expiresIn: 0, // 这些值在实际使用时会被刷新
+          expiresIn: 0,
           refreshExpiresIn: 0
         }
+      } else {
+        clearAuthData()
       }
-    } catch {
-      // 认证状态恢复失败，清理数据
-      clearAuthData()
     }
   }
 
@@ -73,11 +105,7 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokenData.refreshToken)
 
     } catch (err: any) {
-      const errorMessage = err.message || '登录失败'
-      error.value = errorMessage
-      throw new Error(errorMessage)
-    } finally {
-      isLoading.value = false
+      handleAuthError(err, '登录失败')
     }
   }
 
@@ -102,11 +130,7 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokenData.refreshToken)
 
     } catch (err: any) {
-      const errorMessage = err.message || '注册失败'
-      error.value = errorMessage
-      throw new Error(errorMessage)
-    } finally {
-      isLoading.value = false
+      handleAuthError(err, '注册失败')
     }
   }
 
@@ -130,10 +154,8 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newTokens.refreshToken)
 
     } catch (err: any) {
-      const errorMessage = err.message || '刷新令牌失败'
-      error.value = errorMessage
       clearAuthData()
-      throw new Error(errorMessage)
+      handleAuthError(err, '刷新令牌失败')
     }
   }
 

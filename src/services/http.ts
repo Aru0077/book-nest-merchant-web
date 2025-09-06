@@ -3,8 +3,8 @@
  * 基础axios封装，遵循YAGNI原则
  */
 
-import axios, { type AxiosInstance, type AxiosResponse, type AxiosError } from 'axios'
-import type { ApiResponse, ApiErrorResponse } from '@/types'
+import axios, { type AxiosInstance, type AxiosError } from 'axios'
+import type { ApiErrorResponse } from '@/types'
 import { getAccessToken } from '@/utils/token'
 
 // 创建axios实例
@@ -35,15 +35,10 @@ http.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiErrorResponse>) => {
     const errorData = error.response?.data || {
-      success: false,
       code: error.response?.status || 500,
-      message: error.message || 'Network Error',
-      timestamp: new Date().toISOString(),
-      path: error.config?.url || '',
-      method: error.config?.method || ''
+      message: error.message || 'Network Error'
     }
-    
-    // HTTP错误已记录到errorData中
+
     return Promise.reject(errorData)
   }
 )
