@@ -1,14 +1,13 @@
 /**
- * Vite环境变量类型声明
+ * Vite环境变量类型声明 - 精简版
+ * 仅声明实际使用的环境变量
  */
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL: string
-  readonly VITE_APP_TITLE: string
-  readonly VITE_APP_VERSION: string
-  // 添加更多环境变量类型...
 }
 
-interface ImportMeta { // eslint-disable-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line no-unused-vars
+interface ImportMeta {
   readonly env: ImportMetaEnv
 }

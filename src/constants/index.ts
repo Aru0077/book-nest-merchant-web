@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
     LOGIN: '/merchant/auth/login',
     REGISTER: '/merchant/auth/register',
     REFRESH: '/merchant/auth/refresh',
+    LOGOUT: '/merchant/auth/logout',
   },
 } as const
 
