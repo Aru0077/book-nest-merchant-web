@@ -54,7 +54,7 @@ export interface RegisterRequest {
   password: string
 }
 
-// 令牌对 - 与backend完全对齐（包含过期时间）
+// 令牌对 - 包含过期时间用于主动检查
 export interface TokenPair {
   accessToken: string
   refreshToken: string

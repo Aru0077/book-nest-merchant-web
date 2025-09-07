@@ -5,7 +5,7 @@
 
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import type { ApiErrorResponse } from '@/types'
-import { getAccessToken } from '@/utils/token'
+import { getAccessToken, isTokenExpiringSoon, isRefreshTokenExpired } from '@/utils/token'
 
 // 用于避免循环引用的标志
 let isRefreshing = false
@@ -36,12 +36,39 @@ export const http: AxiosInstance = axios.create({
   }
 })
 
-// 请求拦截器 - 添加认证token
+// 请求拦截器 - 添加认证token和主动过期检查
 http.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  async (config: InternalAxiosRequestConfig) => {
     const token = getAccessToken()
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      // 首先检查refresh token是否已过期
+      if (isRefreshTokenExpired()) {
+        // refresh token已过期，自动登出
+        const { useAuthStore } = await import('@/stores/useAuthStore')
+        const authStore = useAuthStore()
+        authStore.clearAuthData()
+        return Promise.reject(new Error('Session expired. Please login again.'))
+      }
+      
+      // 检查access token是否即将过期，如果是则先刷新
+      if (isTokenExpiringSoon() && !isRefreshing) {
+        try {
+          // 动态导入auth store以避免循环依赖
+          const { useAuthStore } = await import('@/stores/useAuthStore')
+          const authStore = useAuthStore()
+          await authStore.refreshToken()
+          // 使用新的token
+          const newToken = getAccessToken()
+          if (newToken) {
+            config.headers.Authorization = `Bearer ${newToken}`
+          }
+        } catch {
+          // 刷新失败，使用原token，让后续401机制处理
+          config.headers.Authorization = `Bearer ${token}`
+        }
+      } else {
+        config.headers.Authorization = `Bearer ${token}`
+      }
     }
     return config
   },

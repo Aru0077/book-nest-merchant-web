@@ -6,7 +6,15 @@
 export { setStorage, getStorage, removeStorage, hasStorage } from './storage'
 
 // Token管理函数
-export { saveTokens, getAccessToken, getRefreshToken, getTokens, clearTokens, hasTokens } from './token'
+export { 
+  saveTokens, 
+  getAccessToken, 
+  getRefreshToken, 
+  getTokens, 
+  clearTokens, 
+  hasTokens, 
+  isTokenExpiringSoon,
+  isRefreshTokenExpired,
+  isRefreshTokenExpiringSoon
+} from './token'
 
-// 密码验证工具函数
-export { validatePassword, getPasswordStrengthInfo, PASSWORD_RULES, type PasswordValidationResult } from './validation'

@@ -72,9 +72,23 @@ export const useAuthStore = defineStore('auth', () => {
       const userData = safeJsonParse<MerchantUser>(storedUser)
       if (userData) {
         user.value = userData
+        // 初始化时从localStorage计算过期时间，如果没有过期时间戳则设为0触发立即刷新
+        const accessExpiresAt = safeGetStorage(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT)
+        const refreshExpiresAt = safeGetStorage(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT)
+        const now = Date.now()
+        
+        const expiresIn = accessExpiresAt 
+          ? Math.max(0, Math.floor((parseInt(accessExpiresAt, 10) - now) / 1000))
+          : 0
+        const refreshExpiresIn = refreshExpiresAt
+          ? Math.max(0, Math.floor((parseInt(refreshExpiresAt, 10) - now) / 1000))
+          : 0
+        
         tokens.value = {
           accessToken: storedAccessToken,
-          refreshToken: storedRefreshToken
+          refreshToken: storedRefreshToken,
+          expiresIn,
+          refreshExpiresIn
         }
       } else {
         clearAuthData()
@@ -91,11 +105,11 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await http.post(API_ENDPOINTS.AUTH.LOGIN, credentials)
-      const { user: userData, accessToken, refreshToken } = response.data.data
+      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = response.data.data
 
       // 保存到state
       user.value = userData
-      tokens.value = { accessToken, refreshToken }
+      tokens.value = { accessToken, refreshToken, expiresIn, refreshExpiresIn }
 
       // 持久化到localStorage
       localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(userData))
@@ -118,11 +132,11 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await http.post(API_ENDPOINTS.AUTH.REGISTER, data)
-      const { user: userData, accessToken, refreshToken } = response.data.data
+      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = response.data.data
 
       // 保存到state
       user.value = userData
-      tokens.value = { accessToken, refreshToken }
+      tokens.value = { accessToken, refreshToken, expiresIn, refreshExpiresIn }
 
       // 持久化到localStorage
       localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(userData))
@@ -148,10 +162,10 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await http.post(API_ENDPOINTS.AUTH.REFRESH, {
         refreshToken: tokens.value.refreshToken
       })
-      const { accessToken, refreshToken: newRefreshToken } = response.data.data
+      const { accessToken, refreshToken: newRefreshToken, expiresIn, refreshExpiresIn } = response.data.data
 
       // 更新state和localStorage
-      tokens.value = { accessToken, refreshToken: newRefreshToken }
+      tokens.value = { accessToken, refreshToken: newRefreshToken, expiresIn, refreshExpiresIn }
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken)
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken)
 

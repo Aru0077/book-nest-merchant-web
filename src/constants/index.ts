@@ -24,6 +24,8 @@ export const STORAGE_KEYS = {
   ACCESS_TOKEN: 'booknest_access_token',
   REFRESH_TOKEN: 'booknest_refresh_token',
   USER_INFO: 'booknest_user_info',
+  ACCESS_TOKEN_EXPIRES_AT: 'booknest_access_token_expires_at',
+  REFRESH_TOKEN_EXPIRES_AT: 'booknest_refresh_token_expires_at',
 } as const
 
 // ============ 错误消息映射 ============
