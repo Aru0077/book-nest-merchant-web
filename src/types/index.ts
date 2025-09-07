@@ -54,10 +54,12 @@ export interface RegisterRequest {
   password: string
 }
 
-// 令牌对 - 与backend完全对齐（移除不存在的字段）
+// 令牌对 - 与backend完全对齐（包含过期时间）
 export interface TokenPair {
   accessToken: string
   refreshToken: string
+  expiresIn: number        // 访问令牌过期时间（秒）
+  refreshExpiresIn: number // 刷新令牌过期时间（秒）
 }
 
 // 登录响应 - 与backend LoginResponse对齐
@@ -65,6 +67,8 @@ export interface LoginResponse {
   user: MerchantUser
   accessToken: string
   refreshToken: string
+  expiresIn: number        // 访问令牌过期时间（秒）
+  refreshExpiresIn: number // 刷新令牌过期时间（秒）
 }
 
 // ============ 基础工具类型 ============
