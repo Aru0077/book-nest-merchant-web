@@ -27,21 +27,18 @@ export interface ApiErrorResponse {
 }
 
 // ============ 用户相关类型 ============
-export interface User {
+// 与backend AuthUser类型对齐
+export interface AuthUser {
   id: string
+  role: 'MERCHANT'
   email?: string
   phone?: string
   username?: string
-  emailVerified: boolean
-  phoneVerified: boolean
-  status: 'ACTIVE' | 'INACTIVE'
-  createdAt: string
-  updatedAt: string
-  lastLoginAt?: string
 }
 
-export interface MerchantUser extends User {
-  role?: 'merchant'
+// 商家用户类型 - 与backend AuthUser完全对齐
+export interface MerchantUser extends AuthUser {
+  role: 'MERCHANT'
 }
 
 // ============ 认证相关类型 ============
@@ -57,16 +54,17 @@ export interface RegisterRequest {
   password: string
 }
 
+// 令牌对 - 与backend完全对齐（移除不存在的字段）
 export interface TokenPair {
   accessToken: string
   refreshToken: string
-  expiresIn: number
-  refreshExpiresIn: number
 }
 
+// 登录响应 - 与backend LoginResponse对齐
 export interface LoginResponse {
   user: MerchantUser
-  tokens: TokenPair
+  accessToken: string
+  refreshToken: string
 }
 
 // ============ 基础工具类型 ============

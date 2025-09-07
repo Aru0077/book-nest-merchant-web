@@ -8,7 +8,8 @@
         </div>
       </template>
 
-      <el-form ref="registerFormRef" :model="registerForm" :rules="registerRules" class="register-form"
+      <el-form
+ref="registerFormRef" :model="registerForm" :rules="registerRules" class="register-form"
         @submit.prevent="handleRegister">
         <el-form-item prop="email">
           <el-input v-model="registerForm.email" placeholder="请输入邮箱" size="large" :prefix-icon="Message" clearable />
@@ -19,17 +20,20 @@
         </el-form-item>
 
         <el-form-item prop="password">
-          <el-input v-model="registerForm.password" type="password" placeholder="请输入密码" size="large" :prefix-icon="Lock"
+          <el-input
+v-model="registerForm.password" type="password" placeholder="请输入密码" size="large" :prefix-icon="Lock"
             show-password clearable />
         </el-form-item>
 
         <el-form-item prop="confirmPassword">
-          <el-input v-model="registerForm.confirmPassword" type="password" placeholder="请确认密码" size="large"
+          <el-input
+v-model="registerForm.confirmPassword" type="password" placeholder="请确认密码" size="large"
             :prefix-icon="Lock" show-password clearable @keyup.enter="handleRegister" />
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" size="large" style="width: 100%" :loading="authStore.isLoading"
+          <el-button
+type="primary" size="large" style="width: 100%" :loading="authStore.isLoading"
             @click="handleRegister">
             {{ authStore.isLoading ? '注册中...' : '立即注册' }}
           </el-button>
@@ -65,7 +69,7 @@ const registerForm = reactive({
   confirmPassword: ''
 })
 
-const validateConfirmPassword = (rule: any, value: string, callback: Function) => {
+const validateConfirmPassword = (rule: any, value: string, callback: any) => {
   if (value !== registerForm.password) {
     callback(new Error('两次输入的密码不一致'))
   } else {
@@ -98,13 +102,14 @@ const handleRegister = async () => {
   try {
     await registerFormRef.value.validate()
 
-    const { confirmPassword, ...registerData } = registerForm
+    const { confirmPassword: _, ...registerData } = registerForm
     await authStore.register(registerData)
 
     ElMessage.success('注册成功')
     router.push('/dashboard')
   } catch (error) {
-    ElMessage.error((error as Error).message || '注册失败')
+    const errorMessage = error instanceof Error ? error.message : '注册失败'
+    ElMessage.error(errorMessage)
   }
 }
 </script>

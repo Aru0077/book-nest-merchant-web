@@ -41,9 +41,7 @@ export const getTokens = (): TokenPair | null => {
   
   return {
     accessToken,
-    refreshToken,
-    expiresIn: 0,
-    refreshExpiresIn: 0
+    refreshToken
   }
 }
 

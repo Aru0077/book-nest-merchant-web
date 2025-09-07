@@ -6,7 +6,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
 import http from '@/services/http'
-import { API_ENDPOINTS, STORAGE_KEYS } from '@/constants'
+import { API_ENDPOINTS, STORAGE_KEYS, getFriendlyErrorMessage } from '@/constants'
 import type {
   LoginRequest,
   RegisterRequest,
@@ -32,10 +32,10 @@ export const useAuthStore = defineStore('auth', () => {
    * 通用错误处理函数
    */
   const handleAuthError = (err: any, defaultMessage: string): void => {
-    const errorMessage = err.message || defaultMessage
-    error.value = errorMessage
+    const friendlyMessage = getFriendlyErrorMessage(err, defaultMessage)
+    error.value = friendlyMessage
     isLoading.value = false
-    throw new Error(errorMessage)
+    throw new Error(friendlyMessage)
   }
 
   /**
@@ -74,9 +74,7 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = userData
         tokens.value = {
           accessToken: storedAccessToken,
-          refreshToken: storedRefreshToken,
-          expiresIn: 0,
-          refreshExpiresIn: 0
+          refreshToken: storedRefreshToken
         }
       } else {
         clearAuthData()
@@ -93,19 +91,21 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await http.post(API_ENDPOINTS.AUTH.LOGIN, credentials)
-      const { user: userData, tokens: tokenData } = response.data.data
+      const { user: userData, accessToken, refreshToken } = response.data.data
 
       // 保存到state
       user.value = userData
-      tokens.value = tokenData
+      tokens.value = { accessToken, refreshToken }
 
       // 持久化到localStorage
       localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(userData))
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokenData.accessToken)
-      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokenData.refreshToken)
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken)
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken)
 
     } catch (err: any) {
       handleAuthError(err, '登录失败')
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -118,19 +118,21 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await http.post(API_ENDPOINTS.AUTH.REGISTER, data)
-      const { user: userData, tokens: tokenData } = response.data.data
+      const { user: userData, accessToken, refreshToken } = response.data.data
 
       // 保存到state
       user.value = userData
-      tokens.value = tokenData
+      tokens.value = { accessToken, refreshToken }
 
       // 持久化到localStorage
       localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(userData))
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokenData.accessToken)
-      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokenData.refreshToken)
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken)
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken)
 
     } catch (err: any) {
       handleAuthError(err, '注册失败')
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -146,12 +148,12 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await http.post(API_ENDPOINTS.AUTH.REFRESH, {
         refreshToken: tokens.value.refreshToken
       })
-      const newTokens = response.data.data.tokens
+      const { accessToken, refreshToken: newRefreshToken } = response.data.data
 
       // 更新state和localStorage
-      tokens.value = newTokens
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, newTokens.accessToken)
-      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newTokens.refreshToken)
+      tokens.value = { accessToken, refreshToken: newRefreshToken }
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken)
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken)
 
     } catch (err: any) {
       clearAuthData()

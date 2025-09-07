@@ -7,20 +7,24 @@
         </div>
       </template>
 
-      <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" class="login-form"
+      <el-form
+ref="loginFormRef" :model="loginForm" :rules="loginRules" class="login-form"
         @submit.prevent="handleLogin">
         <el-form-item prop="identifier">
-          <el-input v-model="loginForm.identifier" placeholder="请输入邮箱/手机号/用户名" size="large" :prefix-icon="User"
+          <el-input
+v-model="loginForm.identifier" placeholder="请输入邮箱/手机号/用户名" size="large" :prefix-icon="User"
             clearable />
         </el-form-item>
 
         <el-form-item prop="password">
-          <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" size="large" :prefix-icon="Lock"
+          <el-input
+v-model="loginForm.password" type="password" placeholder="请输入密码" size="large" :prefix-icon="Lock"
             show-password clearable @keyup.enter="handleLogin" />
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" size="large" style="width: 100%" :loading="authStore.isLoading"
+          <el-button
+type="primary" size="large" style="width: 100%" :loading="authStore.isLoading"
             @click="handleLogin">
             {{ authStore.isLoading ? '登录中...' : '登录' }}
           </el-button>
@@ -74,7 +78,8 @@ const handleLogin = async () => {
     ElMessage.success('登录成功')
     router.push('/dashboard')
   } catch (error) {
-    ElMessage.error((error as Error).message || '登录失败')
+    const errorMessage = error instanceof Error ? error.message : '登录失败'
+    ElMessage.error(errorMessage)
   }
 }
 </script>
