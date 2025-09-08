@@ -6,6 +6,7 @@
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import type { ApiErrorResponse } from '@/types'
 import { getAccessToken, isTokenExpiringSoon, isRefreshTokenExpired } from '@/utils/token'
+import { refreshToken as authRefreshToken, clearAuthData as authClearData } from '@/services/auth'
 
 // 用于避免循环引用的标志
 let isRefreshing = false
@@ -44,19 +45,14 @@ http.interceptors.request.use(
       // 首先检查refresh token是否已过期
       if (isRefreshTokenExpired()) {
         // refresh token已过期，自动登出
-        const { useAuthStore } = await import('@/stores/useAuthStore')
-        const authStore = useAuthStore()
-        authStore.clearAuthData()
+        authClearData()
         return Promise.reject(new Error('Session expired. Please login again.'))
       }
       
       // 检查access token是否即将过期，如果是则先刷新
       if (isTokenExpiringSoon() && !isRefreshing) {
         try {
-          // 动态导入auth store以避免循环依赖
-          const { useAuthStore } = await import('@/stores/useAuthStore')
-          const authStore = useAuthStore()
-          await authStore.refreshToken()
+          await authRefreshToken()
           // 使用新的token
           const newToken = getAccessToken()
           if (newToken) {
@@ -101,12 +97,8 @@ http.interceptors.response.use(
       isRefreshing = true
 
       try {
-        // 动态导入auth store以避免循环依赖
-        const { useAuthStore } = await import('@/stores/useAuthStore')
-        const authStore = useAuthStore()
-        
         // 尝试刷新token
-        await authStore.refreshToken()
+        await authRefreshToken()
         
         // 刷新成功，处理队列中的请求
         processQueue(null)
@@ -122,10 +114,8 @@ http.interceptors.response.use(
         // 刷新失败，处理队列中的请求并登出用户
         processQueue(refreshError)
         
-        // 动态导入auth store进行登出
-        const { useAuthStore } = await import('@/stores/useAuthStore')
-        const authStore = useAuthStore()
-        authStore.clearAuthData()
+        // 清理认证数据
+        authClearData()
         
         // 可以在这里添加跳转到登录页的逻辑
         // 例如：router.push('/login')
@@ -136,9 +126,13 @@ http.interceptors.response.use(
       }
     }
 
-    // 构造错误响应数据
+    // 构造错误响应数据 - 与backend格式完全匹配
     const errorData = error.response?.data || {
+      success: false,
       code: error.response?.status || 500,
+      timestamp: new Date().toISOString(),
+      path: error.config?.url || 'unknown',
+      method: (error.config?.method || 'unknown').toUpperCase(),
       message: error.message || 'Network Error'
     }
 

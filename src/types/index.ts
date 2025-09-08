@@ -4,8 +4,9 @@
  */
 
 // ============ API响应类型 ============
+// 与backend统一响应格式100%对齐
 export interface ApiResponse<T = unknown> {
-  success: boolean
+  success: true      // 成功标识
   data: T
   code: number
   message: string
@@ -13,17 +14,13 @@ export interface ApiResponse<T = unknown> {
 }
 
 export interface ApiErrorResponse {
-  success: false
+  success: false     // 失败标识
   code: number
   timestamp: string
   path: string
   method: string
   message: string
-  error?: {
-    name: string
-    stack?: string
-    [key: string]: unknown
-  }
+  error?: unknown
 }
 
 // ============ 用户相关类型 ============
