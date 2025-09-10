@@ -4,7 +4,7 @@
  */
 
 import { STORAGE_KEYS } from '@/constants'
-import type { TokenPair } from '@/types'
+import type { TokenPair } from '@/api/types'
 
 /**
  * 保存token对到localStorage
@@ -12,7 +12,7 @@ import type { TokenPair } from '@/types'
 export const saveTokens = (tokens: TokenPair): void => {
   const accessExpiresAt = Date.now() + (tokens.expiresIn * 1000)
   const refreshExpiresAt = Date.now() + (tokens.refreshExpiresIn * 1000)
-  
+
   localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokens.accessToken)
   localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken)
   localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT, accessExpiresAt.toString())
@@ -41,17 +41,17 @@ export const getTokens = (): TokenPair | null => {
   const refreshToken = getRefreshToken()
   const accessExpiresAt = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT)
   const refreshExpiresAt = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT)
-  
+
   if (!accessToken || !refreshToken || !accessExpiresAt || !refreshExpiresAt) {
     return null
   }
-  
+
   const now = Date.now()
   const accessExpireTime = parseInt(accessExpiresAt, 10)
   const refreshExpireTime = parseInt(refreshExpiresAt, 10)
   const expiresIn = Math.max(0, Math.floor((accessExpireTime - now) / 1000))
   const refreshExpiresIn = Math.max(0, Math.floor((refreshExpireTime - now) / 1000))
-  
+
   return {
     accessToken,
     refreshToken,
@@ -84,7 +84,7 @@ export const hasTokens = (): boolean => {
 export const isTokenExpiringSoon = (threshold: number = 300): boolean => {
   const tokens = getTokens()
   if (!tokens) return true
-  
+
   return tokens.expiresIn <= threshold
 }
 
@@ -94,7 +94,7 @@ export const isTokenExpiringSoon = (threshold: number = 300): boolean => {
 export const isRefreshTokenExpired = (): boolean => {
   const tokens = getTokens()
   if (!tokens) return true
-  
+
   return tokens.refreshExpiresIn <= 0
 }
 
@@ -105,6 +105,6 @@ export const isRefreshTokenExpired = (): boolean => {
 export const isRefreshTokenExpiringSoon = (threshold: number = 86400): boolean => {
   const tokens = getTokens()
   if (!tokens) return true
-  
+
   return tokens.refreshExpiresIn <= threshold
 }

@@ -1,6 +1,6 @@
 /**
- * 认证服务 - 避免循环依赖的中介服务
- * 为HTTP拦截器提供认证操作接口
+ * 认证服务 - 简化版本
+ * 为HTTP拦截器提供认证操作接口，避免循环依赖
  */
 
 import type { useAuthStore } from '@/stores/useAuthStore'

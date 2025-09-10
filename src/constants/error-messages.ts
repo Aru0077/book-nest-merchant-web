@@ -21,11 +21,13 @@ export const HTTP_ERROR_MESSAGES: Record<number, string> = {
 } as const
 
 /**
- * 认证相关错误映射 - 仅保留商家端核心认证错误
+ * 认证相关错误映射 - 与backend错误码对齐
  */
 export const AUTH_ERROR_MESSAGES: Record<string, string> = {
   // 登录错误
   '用户不存在或未激活': '账号不存在或已被停用，请联系管理员',
+  '用户不存在': '账号不存在，请检查输入信息或先注册',
+  '用户名或密码错误': '用户名或密码错误，请重新输入',
   '密码错误': '密码错误，请重新输入',
   '登录标识符不能为空': '请输入邮箱、手机号或用户名',
   '密码不能为空': '请输入密码',
@@ -33,13 +35,31 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
   // 注册错误
   '至少提供一个联系方式': '请至少填写邮箱、手机号或用户名中的一项',
   '邮箱已被注册': '该邮箱已被使用，请更换其他邮箱',
+  '邮箱已被使用': '该邮箱已被使用，请更换其他邮箱',
   '手机号已被注册': '该手机号已被使用，请更换其他手机号',
+  '手机号已被使用': '该手机号已被使用，请更换其他手机号',
   '用户名已被注册': '该用户名已被使用，请更换其他用户名',
+  '用户已存在': '该账户信息已被使用，请检查输入信息',
 
   // Token相关错误
   '刷新令牌已失效': '登录已过期，请重新登录',
+  '刷新令牌已过期': '登录已过期，请重新登录',
+  '刷新令牌无效': '登录状态异常，请重新登录',
   '访问令牌已过期': '登录已过期，正在为您自动刷新...',
+  '无效的访问令牌': '登录状态异常，请重新登录',
   '无效的令牌': '登录状态异常，请重新登录',
+
+  // 权限和状态相关错误
+  '权限不足': '您没有权限进行此操作',
+  '账户已被禁用': '账户已被停用，请联系管理员',
+  '账户待审批': '账户正在审批中，请耐心等待',
+
+  // 验证相关错误
+  '输入验证失败': '请检查输入信息格式是否正确',
+  '输入格式不正确': '输入格式不正确，请重新输入',
+  '邮箱或手机号格式不正确': '邮箱或手机号格式不正确，请重新输入',
+  '缺少必填字段': '请填写所有必填信息',
+  '密码强度不够': '密码强度不够，请设置更强的密码',
 
   // 网络相关错误
   'Network Error': '网络连接失败，请检查网络设置',
@@ -58,7 +78,7 @@ export const COMMON_ERROR_MESSAGES: Record<string, string> = {
  * 合并网络错误处理逻辑，避免重复函数
  */
 export function getFriendlyErrorMessage(
-  error: unknown, 
+  error: unknown,
   defaultMessage: string = '操作失败，请稍后重试'
 ): string {
   // 处理字符串错误消息
@@ -67,30 +87,30 @@ export function getFriendlyErrorMessage(
     if (AUTH_ERROR_MESSAGES[error]) {
       return AUTH_ERROR_MESSAGES[error]
     }
-    
+
     // 匹配通用错误
     if (COMMON_ERROR_MESSAGES[error]) {
       return COMMON_ERROR_MESSAGES[error]
     }
-    
+
     // 处理网络相关错误字符串
     const lowerError = error.toLowerCase()
     if (lowerError.includes('network') || lowerError.includes('timeout')) {
       return '网络连接失败，请检查网络设置'
     }
-    
+
     return error || defaultMessage
   }
 
   // 处理错误对象
   if (typeof error === 'object' && error !== null) {
     const errorObj = error as Record<string, unknown>
-    
+
     // 处理HTTP状态码错误
     if (typeof errorObj.code === 'number' && HTTP_ERROR_MESSAGES[errorObj.code]) {
       return HTTP_ERROR_MESSAGES[errorObj.code]
     }
-    
+
     // 处理网络错误码
     if (typeof errorObj.code === 'string') {
       const networkErrors = ['ENOTFOUND', 'ENETUNREACH', 'ECONNREFUSED', 'ETIMEDOUT']
@@ -98,7 +118,7 @@ export function getFriendlyErrorMessage(
         return '网络连接失败，请检查网络设置'
       }
     }
-    
+
     // 处理消息字段
     if (typeof errorObj.message === 'string') {
       return getFriendlyErrorMessage(errorObj.message, defaultMessage)

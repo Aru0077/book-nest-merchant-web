@@ -5,18 +5,18 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
-import http from '@/services/http'
-import { API_ENDPOINTS, STORAGE_KEYS, getFriendlyErrorMessage } from '@/constants'
+import { authApi } from '@/api'
+import { STORAGE_KEYS, getFriendlyErrorMessage } from '@/constants'
 import type {
   LoginRequest,
   RegisterRequest,
-  MerchantUser,
+  AuthUser,
   TokenPair
-} from '@/types'
+} from '@/api/types'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
-  const user = ref<MerchantUser | null>(null)
+  const user = ref<AuthUser | null>(null)
   const tokens = ref<TokenPair | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
@@ -69,21 +69,21 @@ export const useAuthStore = defineStore('auth', () => {
     const storedRefreshToken = safeGetStorage(STORAGE_KEYS.REFRESH_TOKEN)
 
     if (storedUser && storedAccessToken && storedRefreshToken) {
-      const userData = safeJsonParse<MerchantUser>(storedUser)
+      const userData = safeJsonParse<AuthUser>(storedUser)
       if (userData) {
         user.value = userData
         // 初始化时从localStorage计算过期时间，如果没有过期时间戳则设为0触发立即刷新
         const accessExpiresAt = safeGetStorage(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT)
         const refreshExpiresAt = safeGetStorage(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT)
         const now = Date.now()
-        
-        const expiresIn = accessExpiresAt 
+
+        const expiresIn = accessExpiresAt
           ? Math.max(0, Math.floor((parseInt(accessExpiresAt, 10) - now) / 1000))
           : 0
         const refreshExpiresIn = refreshExpiresAt
           ? Math.max(0, Math.floor((parseInt(refreshExpiresAt, 10) - now) / 1000))
           : 0
-        
+
         tokens.value = {
           accessToken: storedAccessToken,
           refreshToken: storedRefreshToken,
@@ -104,8 +104,8 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      const response = await http.post(API_ENDPOINTS.AUTH.LOGIN, credentials)
-      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = response.data.data
+      const loginResponse = await authApi.login(credentials)
+      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = loginResponse
 
       // 保存到state
       user.value = userData
@@ -115,6 +115,13 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(userData))
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken)
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken)
+
+      // 保存过期时间戳
+      const now = Date.now()
+      const accessExpiresAt = now + expiresIn * 1000
+      const refreshExpiresAt = now + refreshExpiresIn * 1000
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT, accessExpiresAt.toString())
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT, refreshExpiresAt.toString())
 
     } catch (err: any) {
       handleAuthError(err, '登录失败')
@@ -131,8 +138,8 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      const response = await http.post(API_ENDPOINTS.AUTH.REGISTER, data)
-      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = response.data.data
+      const registerResponse = await authApi.register(data)
+      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = registerResponse
 
       // 保存到state
       user.value = userData
@@ -142,6 +149,13 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(userData))
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken)
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken)
+
+      // 保存过期时间戳
+      const now = Date.now()
+      const accessExpiresAt = now + expiresIn * 1000
+      const refreshExpiresAt = now + refreshExpiresIn * 1000
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT, accessExpiresAt.toString())
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT, refreshExpiresAt.toString())
 
     } catch (err: any) {
       handleAuthError(err, '注册失败')
@@ -159,15 +173,22 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     try {
-      const response = await http.post(API_ENDPOINTS.AUTH.REFRESH, {
+      const refreshResponse = await authApi.refreshToken({
         refreshToken: tokens.value.refreshToken
       })
-      const { accessToken, refreshToken: newRefreshToken, expiresIn, refreshExpiresIn } = response.data.data
+      const { accessToken, refreshToken: newRefreshToken, expiresIn, refreshExpiresIn } = refreshResponse
 
       // 更新state和localStorage
       tokens.value = { accessToken, refreshToken: newRefreshToken, expiresIn, refreshExpiresIn }
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken)
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken)
+
+      // 更新过期时间戳
+      const now = Date.now()
+      const accessExpiresAt = now + expiresIn * 1000
+      const refreshExpiresAt = now + refreshExpiresIn * 1000
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT, accessExpiresAt.toString())
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT, refreshExpiresAt.toString())
 
     } catch (err: any) {
       clearAuthData()
@@ -185,9 +206,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       // 调用后端注销接口
       if (tokens.value?.refreshToken) {
-        await http.post(API_ENDPOINTS.AUTH.LOGOUT, {
-          refreshToken: tokens.value.refreshToken
-        })
+        await authApi.logout()
       }
     } catch {
       // 注销接口失败不影响本地清理
@@ -211,6 +230,8 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem(STORAGE_KEYS.USER_INFO)
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT)
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT)
   }
 
   /**
@@ -223,7 +244,7 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * 更新用户信息
    */
-  const updateUser = (userData: Partial<MerchantUser>): void => {
+  const updateUser = (userData: Partial<AuthUser>): void => {
     if (user.value) {
       user.value = { ...user.value, ...userData }
       localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(user.value))

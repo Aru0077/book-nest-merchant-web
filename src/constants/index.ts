@@ -3,15 +3,7 @@
  * 遵循YAGNI原则，仅定义当前需要的常量
  */
 
-// ============ API端点 ============
-export const API_ENDPOINTS = {
-  AUTH: {
-    LOGIN: '/merchant/auth/login',
-    REGISTER: '/merchant/auth/register',
-    REFRESH: '/merchant/auth/refresh',
-    LOGOUT: '/merchant/auth/logout',
-  },
-} as const
+// API端点统一由 @/api 模块管理
 
 // ============ 应用配置 ============
 export const APP_CONFIG = {

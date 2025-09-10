@@ -4,7 +4,7 @@
  */
 
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios'
-import type { ApiErrorResponse } from '@/types'
+import type { ApiErrorResponse } from '@/api/types'
 import { getAccessToken, isTokenExpiringSoon, isRefreshTokenExpired } from '@/utils/token'
 import { refreshToken as authRefreshToken, clearAuthData as authClearData } from '@/services/auth'
 
@@ -24,7 +24,7 @@ const processQueue = (error: unknown) => {
       resolve()
     }
   })
-  
+
   failedQueue = []
 }
 
@@ -48,7 +48,7 @@ http.interceptors.request.use(
         authClearData()
         return Promise.reject(new Error('Session expired. Please login again.'))
       }
-      
+
       // 检查access token是否即将过期，如果是则先刷新
       if (isTokenExpiringSoon() && !isRefreshing) {
         try {
@@ -78,15 +78,15 @@ http.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiErrorResponse>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
-    
+
     // 处理401未授权错误
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         // 如果正在刷新token，将请求加入队列
         return new Promise((resolve, reject) => {
-          failedQueue.push({ 
-            resolve: () => resolve(null), 
-            reject 
+          failedQueue.push({
+            resolve: () => resolve(null),
+            reject
           })
         }).then(() => {
           return http(originalRequest)
@@ -99,27 +99,27 @@ http.interceptors.response.use(
       try {
         // 尝试刷新token
         await authRefreshToken()
-        
+
         // 刷新成功，处理队列中的请求
         processQueue(null)
-        
+
         // 重试原始请求
         const newToken = getAccessToken()
         if (newToken && originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${newToken}`
         }
-        
+
         return http(originalRequest)
       } catch (refreshError) {
         // 刷新失败，处理队列中的请求并登出用户
         processQueue(refreshError)
-        
+
         // 清理认证数据
         authClearData()
-        
+
         // 可以在这里添加跳转到登录页的逻辑
         // 例如：router.push('/login')
-        
+
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false
