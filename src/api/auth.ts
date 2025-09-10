@@ -19,7 +19,7 @@ import type {
   SimpleMessageResponse
 } from './types'
 
-const BASE_URL = '/api/v1/merchant/auth'
+const BASE_URL = '/merchant/auth'
 
 // ============ 基础认证接口 (4个) ============
 

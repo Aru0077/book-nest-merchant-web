@@ -39,59 +39,27 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * 安全获取localStorage数据
-   */
-  const safeGetStorage = (key: string): string | null => {
-    try {
-      return localStorage.getItem(key)
-    } catch {
-      return null
-    }
-  }
-
-  /**
-   * 安全解析JSON
-   */
-  const safeJsonParse = <T>(data: string): T | null => {
-    try {
-      return JSON.parse(data) as T
-    } catch {
-      return null
-    }
-  }
-
-  /**
-   * 初始化认证状态 - 从localStorage恢复
+   * 初始化认证状态 - Pinia插件会自动从localStorage恢复
+   * 这个方法现在主要用于计算token过期时间
    */
   const initAuth = (): void => {
-    const storedUser = safeGetStorage(STORAGE_KEYS.USER_INFO)
-    const storedAccessToken = safeGetStorage(STORAGE_KEYS.ACCESS_TOKEN)
-    const storedRefreshToken = safeGetStorage(STORAGE_KEYS.REFRESH_TOKEN)
+    // Pinia插件会自动恢复user和tokens状态
+    // 这里只需要重新计算过期时间（因为插件不会保存计算后的时间差）
+    if (tokens.value) {
+      const now = Date.now()
+      // 从保存的过期时间戳重新计算剩余时间
+      const accessExpiresAt = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT)
+      const refreshExpiresAt = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT)
 
-    if (storedUser && storedAccessToken && storedRefreshToken) {
-      const userData = safeJsonParse<AuthUser>(storedUser)
-      if (userData) {
-        user.value = userData
-        // 初始化时从localStorage计算过期时间，如果没有过期时间戳则设为0触发立即刷新
-        const accessExpiresAt = safeGetStorage(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT)
-        const refreshExpiresAt = safeGetStorage(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT)
-        const now = Date.now()
-
-        const expiresIn = accessExpiresAt
-          ? Math.max(0, Math.floor((parseInt(accessExpiresAt, 10) - now) / 1000))
-          : 0
-        const refreshExpiresIn = refreshExpiresAt
-          ? Math.max(0, Math.floor((parseInt(refreshExpiresAt, 10) - now) / 1000))
-          : 0
+      if (accessExpiresAt && refreshExpiresAt) {
+        const expiresIn = Math.max(0, Math.floor((parseInt(accessExpiresAt, 10) - now) / 1000))
+        const refreshExpiresIn = Math.max(0, Math.floor((parseInt(refreshExpiresAt, 10) - now) / 1000))
 
         tokens.value = {
-          accessToken: storedAccessToken,
-          refreshToken: storedRefreshToken,
+          ...tokens.value,
           expiresIn,
           refreshExpiresIn
         }
-      } else {
-        clearAuthData()
       }
     }
   }
@@ -107,16 +75,11 @@ export const useAuthStore = defineStore('auth', () => {
       const loginResponse = await authApi.login(credentials)
       const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = loginResponse
 
-      // 保存到state
+      // 保存到state (Pinia插件会自动持久化user和tokens)
       user.value = userData
       tokens.value = { accessToken, refreshToken, expiresIn, refreshExpiresIn }
 
-      // 持久化到localStorage
-      localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(userData))
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken)
-      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken)
-
-      // 保存过期时间戳
+      // 仅保存过期时间戳用于重新计算
       const now = Date.now()
       const accessExpiresAt = now + expiresIn * 1000
       const refreshExpiresAt = now + refreshExpiresIn * 1000
@@ -141,16 +104,11 @@ export const useAuthStore = defineStore('auth', () => {
       const registerResponse = await authApi.register(data)
       const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = registerResponse
 
-      // 保存到state
+      // 保存到state (Pinia插件会自动持久化user和tokens)
       user.value = userData
       tokens.value = { accessToken, refreshToken, expiresIn, refreshExpiresIn }
 
-      // 持久化到localStorage
-      localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(userData))
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken)
-      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken)
-
-      // 保存过期时间戳
+      // 仅保存过期时间戳用于重新计算
       const now = Date.now()
       const accessExpiresAt = now + expiresIn * 1000
       const refreshExpiresAt = now + refreshExpiresIn * 1000
@@ -178,10 +136,8 @@ export const useAuthStore = defineStore('auth', () => {
       })
       const { accessToken, refreshToken: newRefreshToken, expiresIn, refreshExpiresIn } = refreshResponse
 
-      // 更新state和localStorage
+      // 更新state (Pinia插件会自动持久化tokens)
       tokens.value = { accessToken, refreshToken: newRefreshToken, expiresIn, refreshExpiresIn }
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken)
-      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken)
 
       // 更新过期时间戳
       const now = Date.now()
@@ -226,10 +182,7 @@ export const useAuthStore = defineStore('auth', () => {
     tokens.value = null
     error.value = null
 
-    // 清理localStorage
-    localStorage.removeItem(STORAGE_KEYS.USER_INFO)
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+    // 清理过期时间戳 (Pinia插件会自动处理其他数据)
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT)
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT)
   }
@@ -247,7 +200,7 @@ export const useAuthStore = defineStore('auth', () => {
   const updateUser = (userData: Partial<AuthUser>): void => {
     if (user.value) {
       user.value = { ...user.value, ...userData }
-      localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(user.value))
+      // Pinia插件会自动持久化更新后的用户数据
     }
   }
 
@@ -273,6 +226,13 @@ export const useAuthStore = defineStore('auth', () => {
     clearAuthData,
     clearError,
     updateUser
+  }
+}, {
+  // Pinia插件持久化配置
+  persist: {
+    key: 'booknest-merchant-auth',
+    storage: localStorage,
+    pick: ['user', 'tokens'], // 仅持久化核心认证数据
   }
 })
 

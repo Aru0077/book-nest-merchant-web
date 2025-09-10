@@ -1,129 +1,87 @@
 <template>
-  <div class="dashboard">
-    <el-container>
-      <el-header>
-        <div class="header-content">
-          <h1>商家仪表板</h1>
-          <div class="user-info">
-            <span>欢迎，{{ authStore.userInfo?.username || authStore.userInfo?.email }}</span>
-            <el-button type="text" @click="handleLogout">退出登录</el-button>
-          </div>
-        </div>
-      </el-header>
+  <div class="dashboard-page">
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <h1>仪表板</h1>
+      <p class="page-description">查看商家业务概况和数据统计</p>
+    </div>
 
-      <el-main>
-        <div class="dashboard-content">
-          <el-row :gutter="20">
-            <el-col :span="24">
-              <el-card>
-                <template #header>
-                  <div class="card-header">
-                    <span>业务概览</span>
-                  </div>
-                </template>
-                <div class="dashboard-stats">
-                  <p>这里将显示商家业务统计信息</p>
-                  <p>酒店数量、房间总数、订单统计、收益分析等</p>
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
+    <!-- 仪表板内容 -->
+    <div class="dashboard-content">
+      <el-row :gutter="20">
+        <el-col :span="24">
+          <el-card>
+            <template #header>
+              <div class="card-header">
+                <span>业务概览</span>
+              </div>
+            </template>
+            <div class="dashboard-stats">
+              <p>这里将显示商家业务统计信息</p>
+              <p>酒店数量、房间总数、订单统计、收益分析等</p>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
 
-          <el-row :gutter="20" style="margin-top: 20px;">
-            <el-col :span="12">
-              <el-card>
-                <template #header>
-                  <div class="card-header">
-                    <span>酒店管理</span>
-                    <el-button type="primary" size="small">
-                      添加酒店
-                    </el-button>
-                  </div>
-                </template>
-                <div class="hotel-list">
-                  <el-empty description="暂无酒店数据" />
-                </div>
-              </el-card>
-            </el-col>
+      <el-row :gutter="20" style="margin-top: 20px;">
+        <el-col :span="12">
+          <el-card>
+            <template #header>
+              <div class="card-header">
+                <span>酒店管理</span>
+                <el-button type="primary" size="small">
+                  添加酒店
+                </el-button>
+              </div>
+            </template>
+            <div class="hotel-list">
+              <el-empty description="暂无酒店数据" />
+            </div>
+          </el-card>
+        </el-col>
 
-            <el-col :span="12">
-              <el-card>
-                <template #header>
-                  <div class="card-header">
-                    <span>最近订单</span>
-                  </div>
-                </template>
-                <div class="order-list">
-                  <el-empty description="暂无订单数据" />
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
-        </div>
-      </el-main>
-    </el-container>
+        <el-col :span="12">
+          <el-card>
+            <template #header>
+              <div class="card-header">
+                <span>最近订单</span>
+              </div>
+            </template>
+            <div class="order-list">
+              <el-empty description="暂无订单数据" />
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { useAuthStore } from '@/stores/useAuthStore'
-
-const router = useRouter()
-const authStore = useAuthStore()
-
-const handleLogout = async () => {
-  try {
-    await authStore.logout()
-    ElMessage.success('退出登录成功')
-    router.push('/login')
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : '退出登录失败'
-    ElMessage.error(errorMessage)
-  }
-}
+// DashboardView现在是纯内容组件，不需要任何业务逻辑
 </script>
 
 <style scoped>
-.dashboard {
-  height: 100vh;
+.dashboard-page {
+  padding: 0;
 }
 
-.el-header {
-  background-color: #fff;
-  border-bottom: 1px solid #e4e7ed;
-  padding: 0 20px;
+.page-header {
+  margin-bottom: 24px;
 }
 
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 100%;
-}
-
-.header-content h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 500;
+.page-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.el-main {
-  padding: 20px;
-  background-color: #f5f7fa;
-}
-
-.dashboard-content {
-  max-width: 1200px;
-  margin: 0 auto;
+.page-description {
+  margin: 0;
+  color: var(--el-text-color-regular);
+  font-size: 14px;
 }
 
 .card-header {
@@ -141,5 +99,22 @@ const handleLogout = async () => {
 .hotel-list,
 .order-list {
   min-height: 200px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .page-header h1 {
+    font-size: 24px;
+  }
+  
+  .dashboard-stats {
+    padding: 20px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 }
 </style>

@@ -75,7 +75,7 @@ http.interceptors.request.use(
 
 // 响应拦截器 - 统一处理错误和401自动刷新
 http.interceptors.response.use(
-  (response) => response,
+  (response) => response.data, // 直接返回data，简化API调用
   async (error: AxiosError<ApiErrorResponse>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
