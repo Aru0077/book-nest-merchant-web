@@ -16,7 +16,8 @@ import type {
   LoginResponse,
   RefreshTokenResponse,
   MerchantAuthProfile,
-  SimpleMessageResponse
+  SimpleMessageResponse,
+  ApiResponse
 } from './types'
 
 const BASE_URL = '/merchant/auth'
@@ -26,21 +27,21 @@ const BASE_URL = '/merchant/auth'
 /**
  * 商家登录
  */
-export const login = (data: LoginRequest): Promise<LoginResponse> => {
+export const login = (data: LoginRequest): Promise<ApiResponse<LoginResponse>> => {
   return http.post(`${BASE_URL}/login`, data)
 }
 
 /**
  * 商家注册
  */
-export const register = (data: RegisterRequest): Promise<LoginResponse> => {
+export const register = (data: RegisterRequest): Promise<ApiResponse<LoginResponse>> => {
   return http.post(`${BASE_URL}/register`, data)
 }
 
 /**
  * 刷新访问令牌
  */
-export const refreshToken = (data: RefreshTokenRequest): Promise<RefreshTokenResponse> => {
+export const refreshToken = (data: RefreshTokenRequest): Promise<ApiResponse<RefreshTokenResponse>> => {
   return http.post(`${BASE_URL}/refresh`, data)
 }
 

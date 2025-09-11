@@ -19,7 +19,7 @@ const router = createRouter({
       beforeEnter: publicGuard,
       meta: { title: '商家注册' }
     },
-    
+
     // 主应用路由（使用AdminLayout布局）
     {
       path: '/',
@@ -79,7 +79,7 @@ const router = createRouter({
         }
       ]
     },
-    
+
     // 404重定向
     {
       path: '/:pathMatch(.*)*',

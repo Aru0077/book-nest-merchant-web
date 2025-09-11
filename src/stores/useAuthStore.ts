@@ -22,7 +22,7 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref<string | null>(null)
 
   // Getters
-  const isAuthenticated = computed(() => !!user.value && !!tokens.value)
+  const isAuthenticated = computed(() => !!user.value && !!tokens.value?.accessToken && !!tokens.value?.refreshToken)
   const userInfo = computed(() => user.value)
   const hasRole = computed(() => (role: string) => user.value?.role === role)
 
@@ -73,7 +73,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const loginResponse = await authApi.login(credentials)
-      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = loginResponse
+      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = loginResponse.data
 
       // 保存到state (Pinia插件会自动持久化user和tokens)
       user.value = userData
@@ -102,7 +102,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const registerResponse = await authApi.register(data)
-      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = registerResponse
+      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = registerResponse.data
 
       // 保存到state (Pinia插件会自动持久化user和tokens)
       user.value = userData
@@ -134,7 +134,7 @@ export const useAuthStore = defineStore('auth', () => {
       const refreshResponse = await authApi.refreshToken({
         refreshToken: tokens.value.refreshToken
       })
-      const { accessToken, refreshToken: newRefreshToken, expiresIn, refreshExpiresIn } = refreshResponse
+      const { accessToken, refreshToken: newRefreshToken, expiresIn, refreshExpiresIn } = refreshResponse.data
 
       // 更新state (Pinia插件会自动持久化tokens)
       tokens.value = { accessToken, refreshToken: newRefreshToken, expiresIn, refreshExpiresIn }
