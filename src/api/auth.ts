@@ -132,34 +132,3 @@ export const getAuthProfile = (): Promise<ApiResponse<MerchantAuthProfile>> => {
   return http.get(`${BASE_URL}/profile`)
 }
 
-// ============ 验证码发送接口 (2个) ============
-
-/**
- * 发送手机验证码
- */
-export const sendPhoneCode = (data: SendPhoneCodeRequest): Promise<ApiResponse<SimpleMessageResponse>> => {
-  return http.post('/sms/send-code', data)
-}
-
-/**
- * 发送邮箱验证码
- */
-export const sendEmailCode = (data: SendEmailCodeRequest): Promise<ApiResponse<SimpleMessageResponse>> => {
-  return http.post('/email/send-code', data)
-}
-
-// ============ 注册专用验证码发送接口 (2个) ============
-
-/**
- * 发送注册用手机验证码 (会检查是否已注册)
- */
-export const sendRegisterSmsCode = (data: SendPhoneCodeRequest): Promise<ApiResponse<SimpleMessageResponse>> => {
-  return http.post(`${BASE_URL}/send-sms-code`, data)
-}
-
-/**
- * 发送注册用邮箱验证码 (会检查是否已注册)  
- */
-export const sendRegisterEmailCode = (data: SendEmailCodeRequest): Promise<ApiResponse<SimpleMessageResponse>> => {
-  return http.post(`${BASE_URL}/send-email-code`, data)
-}

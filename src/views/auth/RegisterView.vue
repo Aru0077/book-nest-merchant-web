@@ -174,7 +174,7 @@ import { ElMessage } from 'element-plus'
 import { User, Lock, Message, Phone } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useVerificationStore } from '@/stores/useVerificationStore'
-import { authApi } from '@/api'
+import { verificationApi } from '@/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -262,7 +262,7 @@ const sendPhoneCode = async () => {
   if (!phoneForm.phone || phoneCodeCountdown > 0) return
 
   try {
-    await authApi.sendRegisterSmsCode({ phone: phoneForm.phone })
+    await verificationApi.sendRegisterSmsCode({ phone: phoneForm.phone })
     ElMessage.success('验证码已发送')
     verificationStore.startPhoneCountdown()
   } catch (error: unknown) {
@@ -276,7 +276,7 @@ const sendEmailCode = async () => {
   if (!emailCodeForm.email || emailCodeCountdown > 0) return
 
   try {
-    await authApi.sendRegisterEmailCode({ email: emailCodeForm.email })
+    await verificationApi.sendRegisterEmailCode({ email: emailCodeForm.email })
     ElMessage.success('验证码已发送')
     verificationStore.startEmailCountdown()
   } catch (error: unknown) {

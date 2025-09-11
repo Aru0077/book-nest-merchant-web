@@ -1,29 +1,36 @@
 /**
- * 验证码倒计时状态管理 - 简单实现
- * 支持手机号和邮箱的独立倒计时，跨页面共享
+ * 验证码倒计时状态管理 - 精简高效实现
+ * 修复倒计时显示问题，确保响应式更新
  */
 
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 export const useVerificationStore = defineStore('verification', () => {
   // 手机验证码倒计时
-  const phoneCodeCountdown = ref(0)
+  const phoneCountdown = ref(0)
   // 邮箱验证码倒计时
-  const emailCodeCountdown = ref(0)
+  const emailCountdown = ref(0)
   
   // 定时器引用
-  let phoneTimer: number | null = null
-  let emailTimer: number | null = null
+  let phoneTimer: ReturnType<typeof setInterval> | null = null
+  let emailTimer: ReturnType<typeof setInterval> | null = null
+
+  // 计算属性，确保响应式
+  const phoneCodeCountdown = computed(() => phoneCountdown.value)
+  const emailCodeCountdown = computed(() => emailCountdown.value)
 
   // 开始手机验证码倒计时
   const startPhoneCountdown = () => {
-    if (phoneTimer) clearInterval(phoneTimer)
+    if (phoneTimer) {
+      clearInterval(phoneTimer)
+      phoneTimer = null
+    }
     
-    phoneCodeCountdown.value = 60
+    phoneCountdown.value = 60
     phoneTimer = setInterval(() => {
-      phoneCodeCountdown.value--
-      if (phoneCodeCountdown.value <= 0) {
+      phoneCountdown.value--
+      if (phoneCountdown.value <= 0) {
         clearInterval(phoneTimer!)
         phoneTimer = null
       }
@@ -32,12 +39,15 @@ export const useVerificationStore = defineStore('verification', () => {
 
   // 开始邮箱验证码倒计时
   const startEmailCountdown = () => {
-    if (emailTimer) clearInterval(emailTimer)
+    if (emailTimer) {
+      clearInterval(emailTimer)
+      emailTimer = null
+    }
     
-    emailCodeCountdown.value = 60
+    emailCountdown.value = 60
     emailTimer = setInterval(() => {
-      emailCodeCountdown.value--
-      if (emailCodeCountdown.value <= 0) {
+      emailCountdown.value--
+      if (emailCountdown.value <= 0) {
         clearInterval(emailTimer!)
         emailTimer = null
       }
@@ -54,10 +64,12 @@ export const useVerificationStore = defineStore('verification', () => {
       clearInterval(emailTimer)
       emailTimer = null
     }
+    phoneCountdown.value = 0
+    emailCountdown.value = 0
   }
 
   return {
-    // 状态
+    // 响应式状态
     phoneCodeCountdown,
     emailCodeCountdown,
     

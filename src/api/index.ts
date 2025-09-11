@@ -6,5 +6,8 @@
 // 认证API
 export * as authApi from './auth'
 
+// 验证码API  
+export * as verificationApi from './verification'
+
 // 类型定义
 export * from './types'
