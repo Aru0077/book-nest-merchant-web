@@ -7,46 +7,150 @@
         </div>
       </template>
 
-      <el-form
-        ref="loginFormRef"
-        :model="loginForm"
-        :rules="loginRules"
-        class="login-form"
-        @submit.prevent="handleLogin">
-        <el-form-item prop="identifier">
-          <el-input
-          v-model="loginForm.identifier"
-          placeholder="请输入邮箱/手机号/用户名"
-          size="large"
-          :prefix-icon="User"
-            clearable />
-        </el-form-item>
+      <el-tabs v-model="activeTab" class="login-tabs">
+        <!-- 账号密码登录 -->
+        <el-tab-pane label="账号密码" name="password">
+          <el-form
+            ref="passwordFormRef"
+            :model="passwordForm"
+            :rules="passwordRules"
+            class="login-form"
+            @submit.prevent="handleLogin">
+            <el-form-item prop="identifier">
+              <el-input
+                v-model="passwordForm.identifier"
+                placeholder="请输入邮箱/手机号/用户名"
+                size="large"
+                :prefix-icon="User"
+                clearable />
+            </el-form-item>
 
-        <el-form-item prop="password">
-          <el-input
-          v-model="loginForm.password"
-          type="password" placeholder="请输入密码" size="large"
-          :prefix-icon="Lock"
-          show-password clearable @keyup.enter="handleLogin" />
-        </el-form-item>
+            <el-form-item prop="password">
+              <el-input
+                v-model="passwordForm.password"
+                type="password"
+                placeholder="请输入密码"
+                size="large"
+                :prefix-icon="Lock"
+                show-password
+                clearable
+                @keyup.enter="handleLogin" />
+            </el-form-item>
 
-        <el-form-item>
-          <el-button
-          type="primary" size="large" style="width: 100%" :loading="authStore.isLoading"
-            @click="handleLogin">
-            {{ authStore.isLoading ? '登录中...' : '登录' }}
-          </el-button>
-        </el-form-item>
+            <el-form-item>
+              <el-button
+                type="primary"
+                size="large"
+                style="width: 100%"
+                :loading="authStore.isLoading"
+                @click="handleLogin">
+                {{ authStore.isLoading ? '登录中...' : '登录' }}
+              </el-button>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
 
-        <el-form-item>
-          <div class="form-footer">
-            <span>还没有账号？</span>
-            <el-link type="primary" @click="$router.push('/register')">
-              立即注册
-            </el-link>
-          </div>
-        </el-form-item>
-      </el-form>
+        <!-- 手机验证码登录 -->
+        <el-tab-pane label="手机验证码" name="phone">
+          <el-form
+            ref="phoneFormRef"
+            :model="phoneForm"
+            :rules="phoneRules"
+            class="login-form"
+            @submit.prevent="handleLogin">
+            <el-form-item prop="phone">
+              <el-input
+                v-model="phoneForm.phone"
+                placeholder="请输入手机号"
+                size="large"
+                :prefix-icon="Phone"
+                clearable />
+            </el-form-item>
+
+            <el-form-item prop="code">
+              <div class="code-input-group">
+                <el-input
+                  v-model="phoneForm.code"
+                  placeholder="请输入验证码"
+                  size="large"
+                  clearable
+                  @keyup.enter="handleLogin" />
+                <el-button
+                  :disabled="phoneCodeCountdown > 0 || !phoneForm.phone"
+                  size="large"
+                  @click="sendPhoneCode">
+                  {{ phoneCodeCountdown > 0 ? `${phoneCodeCountdown}s` : '发送验证码' }}
+                </el-button>
+              </div>
+            </el-form-item>
+
+            <el-form-item>
+              <el-button
+                type="primary"
+                size="large"
+                style="width: 100%"
+                :loading="authStore.isLoading"
+                @click="handleLogin">
+                {{ authStore.isLoading ? '登录中...' : '登录' }}
+              </el-button>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+
+        <!-- 邮箱验证码登录 -->
+        <el-tab-pane label="邮箱验证码" name="email">
+          <el-form
+            ref="emailFormRef"
+            :model="emailForm"
+            :rules="emailRules"
+            class="login-form"
+            @submit.prevent="handleLogin">
+            <el-form-item prop="email">
+              <el-input
+                v-model="emailForm.email"
+                placeholder="请输入邮箱"
+                size="large"
+                :prefix-icon="Message"
+                clearable />
+            </el-form-item>
+
+            <el-form-item prop="code">
+              <div class="code-input-group">
+                <el-input
+                  v-model="emailForm.code"
+                  placeholder="请输入验证码"
+                  size="large"
+                  clearable
+                  @keyup.enter="handleLogin" />
+                <el-button
+                  :disabled="emailCodeCountdown > 0 || !emailForm.email"
+                  size="large"
+                  @click="sendEmailCode">
+                  {{ emailCodeCountdown > 0 ? `${emailCodeCountdown}s` : '发送验证码' }}
+                </el-button>
+              </div>
+            </el-form-item>
+
+            <el-form-item>
+              <el-button
+                type="primary"
+                size="large"
+                style="width: 100%"
+                :loading="authStore.isLoading"
+                @click="handleLogin">
+                {{ authStore.isLoading ? '登录中...' : '登录' }}
+              </el-button>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+      </el-tabs>
+
+      <div class="form-footer">
+        <span>还没有账号？</span>
+        <el-link type="primary" @click="$router.push('/register')">
+          立即注册
+        </el-link>
+      </div>
     </el-card>
   </div>
 </template>
@@ -55,18 +159,46 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { User, Lock } from '@element-plus/icons-vue'
+import { User, Lock, Phone, Message } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { useVerificationStore } from '@/stores/useVerificationStore'
+import { authApi } from '@/api'
+
 const router = useRouter()
 const authStore = useAuthStore()
+const verificationStore = useVerificationStore()
 
-const loginFormRef = ref()
-const loginForm = reactive({
+// 当前激活的标签页
+const activeTab = ref('password')
+
+// 表单引用
+const passwordFormRef = ref()
+const phoneFormRef = ref()
+const emailFormRef = ref()
+
+// 账号密码登录表单
+const passwordForm = reactive({
   identifier: '',
   password: ''
 })
 
-const loginRules = {
+// 手机验证码登录表单
+const phoneForm = reactive({
+  phone: '',
+  code: ''
+})
+
+// 邮箱验证码登录表单
+const emailForm = reactive({
+  email: '',
+  code: ''
+})
+
+// 使用共享的验证码倒计时状态
+const { phoneCodeCountdown, emailCodeCountdown } = verificationStore
+
+// 表单验证规则
+const passwordRules = {
   identifier: [
     { required: true, message: '请输入邮箱/手机号/用户名', trigger: 'blur' }
   ],
@@ -76,18 +208,95 @@ const loginRules = {
   ]
 }
 
-const handleLogin = async () => {
-  if (!loginFormRef.value) return
+const phoneRules = {
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+  ],
+  code: [
+    { required: true, message: '请输入验证码', trigger: 'blur' },
+    { pattern: /^\d{6}$/, message: '验证码为6位数字', trigger: 'blur' }
+  ]
+}
+
+const emailRules = {
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
+  ],
+  code: [
+    { required: true, message: '请输入验证码', trigger: 'blur' },
+    { pattern: /^\d{6}$/, message: '验证码为6位数字', trigger: 'blur' }
+  ]
+}
+
+// 发送手机验证码
+const sendPhoneCode = async () => {
+  if (!phoneForm.phone || phoneCodeCountdown > 0) return
 
   try {
-    await loginFormRef.value.validate()
-    await authStore.login(loginForm)
+    await authApi.sendPhoneCode({ phone: phoneForm.phone })
+    ElMessage.success('验证码已发送')
+    verificationStore.startPhoneCountdown()
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '操作失败'
+    ElMessage.error(message)
+  }
+}
+
+// 发送邮箱验证码
+const sendEmailCode = async () => {
+  if (!emailForm.email || emailCodeCountdown > 0) return
+
+  try {
+    await authApi.sendEmailCode({ email: emailForm.email })
+    ElMessage.success('验证码已发送')
+    verificationStore.startEmailCountdown()
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '操作失败'
+    ElMessage.error(message)
+  }
+}
+
+
+// 统一登录处理
+const handleLogin = async () => {
+  let formRef: any
+  let formData: any
+  let loginMethod: () => Promise<void>
+
+  // 根据当前标签页选择对应的表单和方法
+  switch (activeTab.value) {
+    case 'password':
+      formRef = passwordFormRef.value
+      formData = passwordForm
+      loginMethod = () => authStore.login(formData)
+      break
+    case 'phone':
+      formRef = phoneFormRef.value
+      formData = phoneForm
+      loginMethod = () => authStore.loginByPhoneCode(formData)
+      break
+    case 'email':
+      formRef = emailFormRef.value
+      formData = emailForm
+      loginMethod = () => authStore.loginByEmailCode(formData)
+      break
+    default:
+      return
+  }
+
+  if (!formRef) return
+
+  try {
+    await formRef.validate()
+    await loginMethod()
 
     ElMessage.success('登录成功')
     router.push('/dashboard')
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : '登录失败'
-    ElMessage.error(errorMessage)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '操作失败'
+    ElMessage.error(message)
   }
 }
 </script>
@@ -116,8 +325,26 @@ const handleLogin = async () => {
   font-weight: 500;
 }
 
+.login-tabs {
+  padding: 20px 20px 0;
+}
+
 .login-form {
-  padding: 0 20px 20px;
+  padding: 0;
+}
+
+.code-input-group {
+  display: flex;
+  gap: 12px;
+}
+
+.code-input-group .el-input {
+  flex: 1;
+}
+
+.code-input-group .el-button {
+  width: 120px;
+  flex-shrink: 0;
 }
 
 .form-footer {
@@ -128,5 +355,22 @@ const handleLogin = async () => {
   width: 100%;
   font-size: 14px;
   color: var(--el-text-color-regular);
+  padding: 20px;
+  border-top: 1px solid var(--el-border-color-light);
+  margin-top: 20px;
+}
+
+/* 标签页样式调整 */
+:deep(.el-tabs__header) {
+  margin: 0 0 20px;
+}
+
+:deep(.el-tabs__nav) {
+  width: 100%;
+}
+
+:deep(.el-tabs__item) {
+  flex: 1;
+  text-align: center;
 }
 </style>

@@ -21,47 +21,47 @@
             router
           >
             <el-menu-item index="/dashboard">
-              <el-icon><House /></el-icon>
+              <el-icon><IconHouse /></el-icon>
               <span>仪表板</span>
             </el-menu-item>
             
             <el-sub-menu index="hotels">
               <template #title>
-                <el-icon><OfficeBuilding /></el-icon>
+                <el-icon><IconOfficeBuilding /></el-icon>
                 <span>酒店管理</span>
               </template>
               <el-menu-item index="/hotels">
-                <el-icon><List /></el-icon>
+                <el-icon><IconList /></el-icon>
                 <span>酒店列表</span>
               </el-menu-item>
               <el-menu-item index="/hotels/create">
-                <el-icon><Plus /></el-icon>
+                <el-icon><IconPlus /></el-icon>
                 <span>添加酒店</span>
               </el-menu-item>
             </el-sub-menu>
             
             <el-sub-menu index="rooms">
               <template #title>
-                <el-icon><HomeFilled /></el-icon>
+                <el-icon><IconHomeFilled /></el-icon>
                 <span>房间管理</span>
               </template>
               <el-menu-item index="/rooms">
-                <el-icon><List /></el-icon>
+                <el-icon><IconList /></el-icon>
                 <span>房间列表</span>
               </el-menu-item>
               <el-menu-item index="/rooms/create">
-                <el-icon><Plus /></el-icon>
+                <el-icon><IconPlus /></el-icon>
                 <span>添加房间</span>
               </el-menu-item>
             </el-sub-menu>
             
             <el-menu-item index="/orders">
-              <el-icon><Document /></el-icon>
+              <el-icon><IconDocument /></el-icon>
               <span>订单管理</span>
             </el-menu-item>
             
             <el-menu-item index="/profile">
-              <el-icon><User /></el-icon>
+              <el-icon><IconUser /></el-icon>
               <span>个人中心</span>
             </el-menu-item>
           </el-menu>
@@ -97,16 +97,16 @@
                 <span>欢迎，{{ authStore.userInfo?.username || authStore.userInfo?.email }}</span>
                 <el-dropdown>
                   <span class="user-avatar">
-                    <el-icon size="20"><User /></el-icon>
+                    <el-icon size="20"><IconUser /></el-icon>
                   </span>
                   <template #dropdown>
                     <el-dropdown-menu>
                       <el-dropdown-item @click="$router.push('/profile')">
-                        <el-icon><User /></el-icon>
+                        <el-icon><IconUser /></el-icon>
                         个人中心
                       </el-dropdown-item>
                       <el-dropdown-item divided @click="handleLogout">
-                        <el-icon><SwitchButton /></el-icon>
+                        <el-icon><IconSwitchButton /></el-icon>
                         退出登录
                       </el-dropdown-item>
                     </el-dropdown-menu>
@@ -143,47 +143,47 @@
           @select="handleMobileMenuSelect"
         >
           <el-menu-item index="/dashboard">
-            <el-icon><House /></el-icon>
+            <el-icon><IconHouse /></el-icon>
             <span>仪表板</span>
           </el-menu-item>
           
           <el-sub-menu index="hotels">
             <template #title>
-              <el-icon><OfficeBuilding /></el-icon>
+              <el-icon><IconOfficeBuilding /></el-icon>
               <span>酒店管理</span>
             </template>
             <el-menu-item index="/hotels">
-              <el-icon><List /></el-icon>
+              <el-icon><IconList /></el-icon>
               <span>酒店列表</span>
             </el-menu-item>
             <el-menu-item index="/hotels/create">
-              <el-icon><Plus /></el-icon>
+              <el-icon><IconPlus /></el-icon>
               <span>添加酒店</span>
             </el-menu-item>
           </el-sub-menu>
           
           <el-sub-menu index="rooms">
             <template #title>
-              <el-icon><HomeFilled /></el-icon>
+              <el-icon><IconHomeFilled /></el-icon>
               <span>房间管理</span>
             </template>
             <el-menu-item index="/rooms">
-              <el-icon><List /></el-icon>
+              <el-icon><IconList /></el-icon>
               <span>房间列表</span>
             </el-menu-item>
             <el-menu-item index="/rooms/create">
-              <el-icon><Plus /></el-icon>
+              <el-icon><IconPlus /></el-icon>
               <span>添加房间</span>
             </el-menu-item>
           </el-sub-menu>
           
           <el-menu-item index="/orders">
-            <el-icon><Document /></el-icon>
+            <el-icon><IconDocument /></el-icon>
             <span>订单管理</span>
           </el-menu-item>
           
           <el-menu-item index="/profile">
-            <el-icon><User /></el-icon>
+            <el-icon><IconUser /></el-icon>
             <span>个人中心</span>
           </el-menu-item>
         </el-menu>
@@ -197,17 +197,9 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
-  House,
-  OfficeBuilding,
-  HomeFilled,
-  Document,
-  User,
-  List,
-  Plus,
   Menu,
   Fold,
-  Expand,
-  SwitchButton
+  Expand
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { APP_CONFIG } from '@/constants'

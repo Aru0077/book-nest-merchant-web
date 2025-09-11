@@ -10,6 +10,8 @@ import type {
   RefreshTokenRequest,
   PhoneVerificationRequest,
   EmailVerificationRequest,
+  SendPhoneCodeRequest,
+  SendEmailCodeRequest,
   AccountSetupRequest,
   SetSecurityPasswordRequest,
   VerifySecurityPasswordRequest,
@@ -48,7 +50,7 @@ export const refreshToken = (data: RefreshTokenRequest): Promise<ApiResponse<Ref
 /**
  * 商家注销
  */
-export const logout = (): Promise<SimpleMessageResponse> => {
+export const logout = (): Promise<ApiResponse<SimpleMessageResponse>> => {
   return http.post(`${BASE_URL}/logout`)
 }
 
@@ -57,28 +59,28 @@ export const logout = (): Promise<SimpleMessageResponse> => {
 /**
  * 手机验证码注册
  */
-export const registerByPhoneCode = (data: PhoneVerificationRequest): Promise<LoginResponse> => {
+export const registerByPhoneCode = (data: PhoneVerificationRequest): Promise<ApiResponse<LoginResponse>> => {
   return http.post(`${BASE_URL}/register/phone-code`, data)
 }
 
 /**
  * 邮箱验证码注册
  */
-export const registerByEmailCode = (data: EmailVerificationRequest): Promise<LoginResponse> => {
+export const registerByEmailCode = (data: EmailVerificationRequest): Promise<ApiResponse<LoginResponse>> => {
   return http.post(`${BASE_URL}/register/email-code`, data)
 }
 
 /**
  * 手机验证码登录
  */
-export const loginByPhoneCode = (data: PhoneVerificationRequest): Promise<LoginResponse> => {
+export const loginByPhoneCode = (data: PhoneVerificationRequest): Promise<ApiResponse<LoginResponse>> => {
   return http.post(`${BASE_URL}/login/phone-code`, data)
 }
 
 /**
  * 邮箱验证码登录
  */
-export const loginByEmailCode = (data: EmailVerificationRequest): Promise<LoginResponse> => {
+export const loginByEmailCode = (data: EmailVerificationRequest): Promise<ApiResponse<LoginResponse>> => {
   return http.post(`${BASE_URL}/login/email-code`, data)
 }
 
@@ -87,21 +89,21 @@ export const loginByEmailCode = (data: EmailVerificationRequest): Promise<LoginR
 /**
  * 绑定手机号
  */
-export const bindPhone = (data: PhoneVerificationRequest): Promise<SimpleMessageResponse> => {
+export const bindPhone = (data: PhoneVerificationRequest): Promise<ApiResponse<SimpleMessageResponse>> => {
   return http.post(`${BASE_URL}/bind/phone`, data)
 }
 
 /**
  * 绑定邮箱
  */
-export const bindEmail = (data: EmailVerificationRequest): Promise<SimpleMessageResponse> => {
+export const bindEmail = (data: EmailVerificationRequest): Promise<ApiResponse<SimpleMessageResponse>> => {
   return http.post(`${BASE_URL}/bind/email`, data)
 }
 
 /**
  * 设置账号密码
  */
-export const bindAccount = (data: AccountSetupRequest): Promise<SimpleMessageResponse> => {
+export const bindAccount = (data: AccountSetupRequest): Promise<ApiResponse<SimpleMessageResponse>> => {
   return http.post(`${BASE_URL}/bind/account`, data)
 }
 
@@ -110,14 +112,14 @@ export const bindAccount = (data: AccountSetupRequest): Promise<SimpleMessageRes
 /**
  * 设置安全密码
  */
-export const setSecurityPassword = (data: SetSecurityPasswordRequest): Promise<SimpleMessageResponse> => {
+export const setSecurityPassword = (data: SetSecurityPasswordRequest): Promise<ApiResponse<SimpleMessageResponse>> => {
   return http.post(`${BASE_URL}/security/set`, data)
 }
 
 /**
  * 验证安全密码
  */
-export const verifySecurityPassword = (data: VerifySecurityPasswordRequest): Promise<SimpleMessageResponse> => {
+export const verifySecurityPassword = (data: VerifySecurityPasswordRequest): Promise<ApiResponse<SimpleMessageResponse>> => {
   return http.post(`${BASE_URL}/security/verify`, data)
 }
 
@@ -126,6 +128,38 @@ export const verifySecurityPassword = (data: VerifySecurityPasswordRequest): Pro
 /**
  * 获取认证状态
  */
-export const getAuthProfile = (): Promise<MerchantAuthProfile> => {
+export const getAuthProfile = (): Promise<ApiResponse<MerchantAuthProfile>> => {
   return http.get(`${BASE_URL}/profile`)
+}
+
+// ============ 验证码发送接口 (2个) ============
+
+/**
+ * 发送手机验证码
+ */
+export const sendPhoneCode = (data: SendPhoneCodeRequest): Promise<ApiResponse<SimpleMessageResponse>> => {
+  return http.post('/sms/send-code', data)
+}
+
+/**
+ * 发送邮箱验证码
+ */
+export const sendEmailCode = (data: SendEmailCodeRequest): Promise<ApiResponse<SimpleMessageResponse>> => {
+  return http.post('/email/send-code', data)
+}
+
+// ============ 注册专用验证码发送接口 (2个) ============
+
+/**
+ * 发送注册用手机验证码 (会检查是否已注册)
+ */
+export const sendRegisterSmsCode = (data: SendPhoneCodeRequest): Promise<ApiResponse<SimpleMessageResponse>> => {
+  return http.post(`${BASE_URL}/send-sms-code`, data)
+}
+
+/**
+ * 发送注册用邮箱验证码 (会检查是否已注册)  
+ */
+export const sendRegisterEmailCode = (data: SendEmailCodeRequest): Promise<ApiResponse<SimpleMessageResponse>> => {
+  return http.post(`${BASE_URL}/send-email-code`, data)
 }

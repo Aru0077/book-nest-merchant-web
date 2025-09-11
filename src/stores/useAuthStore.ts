@@ -6,37 +6,36 @@
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
 import { authApi } from '@/api'
-import { STORAGE_KEYS, getFriendlyErrorMessage } from '@/constants'
+import { STORAGE_KEYS } from '@/constants'
 import type {
   LoginRequest,
   RegisterRequest,
+  PhoneVerificationRequest,
+  EmailVerificationRequest,
+  AccountSetupRequest,
+  SetSecurityPasswordRequest,
+  VerifySecurityPasswordRequest,
   AuthUser,
-  TokenPair
+  TokenPair,
+  MerchantAuthProfile
 } from '@/api/types'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
   const user = ref<AuthUser | null>(null)
   const tokens = ref<TokenPair | null>(null)
+  const profile = ref<MerchantAuthProfile | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
   // Getters
   const isAuthenticated = computed(() => !!user.value && !!tokens.value?.accessToken && !!tokens.value?.refreshToken)
   const userInfo = computed(() => user.value)
+  const userProfile = computed(() => profile.value)
   const hasRole = computed(() => (role: string) => user.value?.role === role)
 
   // Actions
 
-  /**
-   * 通用错误处理函数
-   */
-  const handleAuthError = (err: any, defaultMessage: string): void => {
-    const friendlyMessage = getFriendlyErrorMessage(err, defaultMessage)
-    error.value = friendlyMessage
-    isLoading.value = false
-    throw new Error(friendlyMessage)
-  }
 
   /**
    * 初始化认证状态 - Pinia插件会自动从localStorage恢复
@@ -86,10 +85,10 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT, accessExpiresAt.toString())
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT, refreshExpiresAt.toString())
 
-    } catch (err: any) {
-      handleAuthError(err, '登录失败')
-    } finally {
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : '操作失败'
       isLoading.value = false
+      throw err
     }
   }
 
@@ -115,10 +114,10 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT, accessExpiresAt.toString())
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT, refreshExpiresAt.toString())
 
-    } catch (err: any) {
-      handleAuthError(err, '注册失败')
-    } finally {
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : '操作失败'
       isLoading.value = false
+      throw err
     }
   }
 
@@ -146,9 +145,10 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT, accessExpiresAt.toString())
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT, refreshExpiresAt.toString())
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       clearAuthData()
-      handleAuthError(err, '刷新令牌失败')
+      error.value = err instanceof Error ? err.message : '操作失败'
+      throw err
     }
   }
 
@@ -204,17 +204,260 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // ============ 验证码认证方法 ============
+
+  /**
+   * 手机验证码注册
+   */
+  const registerByPhoneCode = async (data: PhoneVerificationRequest): Promise<void> => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await authApi.registerByPhoneCode(data)
+      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = response.data
+
+      user.value = userData
+      tokens.value = { accessToken, refreshToken, expiresIn, refreshExpiresIn }
+
+      const now = Date.now()
+      const accessExpiresAt = now + expiresIn * 1000
+      const refreshExpiresAt = now + refreshExpiresIn * 1000
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT, accessExpiresAt.toString())
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT, refreshExpiresAt.toString())
+
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : '操作失败'
+      isLoading.value = false
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 邮箱验证码注册
+   */
+  const registerByEmailCode = async (data: EmailVerificationRequest): Promise<void> => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await authApi.registerByEmailCode(data)
+      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = response.data
+
+      user.value = userData
+      tokens.value = { accessToken, refreshToken, expiresIn, refreshExpiresIn }
+
+      const now = Date.now()
+      const accessExpiresAt = now + expiresIn * 1000
+      const refreshExpiresAt = now + refreshExpiresIn * 1000
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT, accessExpiresAt.toString())
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT, refreshExpiresAt.toString())
+
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : '操作失败'
+      isLoading.value = false
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 手机验证码登录
+   */
+  const loginByPhoneCode = async (data: PhoneVerificationRequest): Promise<void> => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await authApi.loginByPhoneCode(data)
+      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = response.data
+
+      user.value = userData
+      tokens.value = { accessToken, refreshToken, expiresIn, refreshExpiresIn }
+
+      const now = Date.now()
+      const accessExpiresAt = now + expiresIn * 1000
+      const refreshExpiresAt = now + refreshExpiresIn * 1000
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT, accessExpiresAt.toString())
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT, refreshExpiresAt.toString())
+
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : '操作失败'
+      isLoading.value = false
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 邮箱验证码登录
+   */
+  const loginByEmailCode = async (data: EmailVerificationRequest): Promise<void> => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await authApi.loginByEmailCode(data)
+      const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = response.data
+
+      user.value = userData
+      tokens.value = { accessToken, refreshToken, expiresIn, refreshExpiresIn }
+
+      const now = Date.now()
+      const accessExpiresAt = now + expiresIn * 1000
+      const refreshExpiresAt = now + refreshExpiresIn * 1000
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRES_AT, accessExpiresAt.toString())
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRES_AT, refreshExpiresAt.toString())
+
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : '操作失败'
+      isLoading.value = false
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // ============ 账户绑定方法 ============
+
+  /**
+   * 绑定手机号
+   */
+  const bindPhone = async (data: PhoneVerificationRequest): Promise<void> => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      await authApi.bindPhone(data)
+      // 绑定成功后刷新用户信息
+      await getAuthProfile()
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : '操作失败'
+      isLoading.value = false
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 绑定邮箱
+   */
+  const bindEmail = async (data: EmailVerificationRequest): Promise<void> => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      await authApi.bindEmail(data)
+      // 绑定成功后刷新用户信息
+      await getAuthProfile()
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : '操作失败'
+      isLoading.value = false
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 设置账号密码
+   */
+  const bindAccount = async (data: AccountSetupRequest): Promise<void> => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      await authApi.bindAccount(data)
+      // 绑定成功后刷新用户信息
+      await getAuthProfile()
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : '操作失败'
+      isLoading.value = false
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // ============ 安全验证方法 ============
+
+  /**
+   * 设置安全密码
+   */
+  const setSecurityPassword = async (data: SetSecurityPasswordRequest): Promise<void> => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      await authApi.setSecurityPassword(data)
+      // 设置成功后刷新用户信息
+      await getAuthProfile()
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : '操作失败'
+      isLoading.value = false
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 验证安全密码
+   */
+  const verifySecurityPassword = async (data: VerifySecurityPasswordRequest): Promise<void> => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      await authApi.verifySecurityPassword(data)
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : '操作失败'
+      isLoading.value = false
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // ============ 用户信息方法 ============
+
+  /**
+   * 获取认证状态
+   */
+  const getAuthProfile = async (): Promise<void> => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await authApi.getAuthProfile()
+      profile.value = response.data
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : '操作失败'
+      isLoading.value = false
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   // 返回store的状态和方法
   return {
-    // State
-    user: readonly(user),
-    tokens: readonly(tokens),
+    // State - 直接返回供Pinia使用
+    user,
+    tokens,
+    profile,
     isLoading: readonly(isLoading),
     error: readonly(error),
 
     // Getters
     isAuthenticated,
     userInfo,
+    userProfile,
     hasRole,
 
     // Actions
@@ -225,14 +468,32 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     clearAuthData,
     clearError,
-    updateUser
+    updateUser,
+
+    // 验证码认证方法
+    registerByPhoneCode,
+    registerByEmailCode,
+    loginByPhoneCode,
+    loginByEmailCode,
+
+    // 账户绑定方法
+    bindPhone,
+    bindEmail,
+    bindAccount,
+
+    // 安全验证方法
+    setSecurityPassword,
+    verifySecurityPassword,
+
+    // 用户信息方法
+    getAuthProfile
   }
 }, {
   // Pinia插件持久化配置
   persist: {
     key: 'booknest-merchant-auth',
     storage: localStorage,
-    pick: ['user', 'tokens'], // 仅持久化核心认证数据
+    pick: ['user', 'tokens', 'profile'], // 仅持久化核心认证数据
   }
 })
 

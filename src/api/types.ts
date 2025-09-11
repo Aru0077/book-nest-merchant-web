@@ -31,6 +31,15 @@ export interface EmailVerificationRequest {
   code: string
 }
 
+// ============ 验证码发送类型 ============
+export interface SendPhoneCodeRequest {
+  phone: string
+}
+
+export interface SendEmailCodeRequest {
+  email: string
+}
+
 // ============ 账户绑定类型 ============
 export interface AccountSetupRequest {
   username: string
@@ -49,7 +58,7 @@ export interface VerifySecurityPasswordRequest {
 // ============ 响应类型 ============
 export interface AuthUser {
   id: string
-  role: 'MERCHANT'
+  role: 'merchant'
   email?: string
   phone?: string
   username?: string
